@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Search Vehicle | ParkSmart{% endblock %}
+{% block content %}
+<section class="page-head"><div><span class="eyebrow">QUICK SEARCH</span><h1>Vehicle Number Search</h1><p class="muted">Find vehicle details and its latest parking status.</p></div></section>
+<section class="panel">
+  <form class="search-box" method="get" action="/search">
+    <input name="q" value="{{ q }}" placeholder="Enter vehicle number, e.g. MH04AB1234" autofocus>
+    <button class="btn primary">Search</button>
+  </form>
+</section>
+{% if q %}
+<section class="panel">
+  <div class="panel-head"><h2>Results</h2><span class="muted">{{ results|length }} found</span></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Vehicle</th><th>Type</th><th>Model</th><th>Owner</th><th>Latest Status</th><th>Slot</th><th>Entry</th></tr></thead>
+      <tbody>
+      {% for r in results %}
+      <tr><td><b>{{ r.vehicle_number }}</b></td><td>{{ r.vehicle_type }}</td><td>{{ r.model }}</td><td>{{ r.owner_name }}</td>
+      <td><span class="status {{ 'busy' if r.parking_status=='Parked' else 'ok' }}">{{ r.parking_status or 'Never Parked' }}</span></td>
+      <td>{{ r.slot_number or '—' }}</td><td>{{ r.entry_time or '—' }}</td></tr>
+      {% else %}<tr><td colspan="7" class="empty">No vehicle found.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

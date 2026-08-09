@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Vehicles | ParkSmart{% endblock %}
+{% block content %}
+<section class="page-head"><div><span class="eyebrow">VEHICLE MANAGEMENT</span><h1>Registered Vehicles</h1><p class="muted">Add and manage vehicle details.</p></div></section>
+<div class="two-col">
+  <section class="panel">
+    <h2>Register Vehicle</h2>
+    <form class="form-grid" method="post" action="/vehicles/add">
+      <label>Vehicle Number<input name="vehicle_number" required placeholder="MH04AB1234"></label>
+      <label>Vehicle Type<select name="vehicle_type"><option>Car</option><option>Bike</option></select></label>
+      <label>Model / Name<input name="model" required placeholder="Honda City"></label>
+      <label>Owner Name<input name="owner_name" required value="{{ user.name }}"></label>
+      <label>Phone<input name="owner_phone" placeholder="9876543210"></label>
+      <button class="btn primary" type="submit">Register Vehicle</button>
+    </form>
+  </section>
+  <section class="panel">
+    <div class="panel-head"><h2>Vehicle List</h2><span class="muted">{{ vehicles|length }} total</span></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Number</th><th>Type</th><th>Model</th><th>Owner</th>{% if user.role!='user' %}<th>Account</th>{% endif %}</tr></thead>
+        <tbody>
+        {% for v in vehicles %}
+          <tr><td><b>{{ v.vehicle_number }}</b></td><td>{{ v.vehicle_type }}</td><td>{{ v.model }}</td><td>{{ v.owner_name }}</td>{% if user.role!='user' %}<td>{{ v.user_email }}</td>{% endif %}</tr>
+        {% else %}<tr><td colspan="5" class="empty">No vehicles registered.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}ParkSmart | Smart Parking{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="hero-copy">
+    <span class="eyebrow">SMART VEHICLE PARKING</span>
+    <h1>Parking that feels <span>instant.</span></h1>
+    <p>Manage vehicle entry, exit, live slot availability, billing, receipts, history and revenue from one responsive system.</p>
+    <div class="hero-actions">
+      <a class="btn primary" href="/register">Get Started</a>
+      <a class="btn ghost" href="/login">Staff Login</a>
+    </div>
+    <div class="mini-row">
+      <div><strong>{{ stats.available_slots }}</strong><span>Available Slots</span></div>
+      <div><strong>{{ stats.occupied_slots }}</strong><span>Occupied</span></div>
+      <div><strong>{{ stats.total_slots }}</strong><span>Total Capacity</span></div>
+    </div>
+  </div>
+  <div class="hero-card glass">
+    <div class="live-head"><span class="live-dot"></span> LIVE PARKING</div>
+    <div class="parking-visual">
+      {% for i in range(1,13) %}
+      <div class="parking-box {% if i <= stats.occupied_slots %}occupied{% endif %}"><span>P{{ "%02d"|format(i) }}</span></div>
+      {% endfor %}
+    </div>
+    <div class="live-stats">
+      <span>Available <b id="homeAvailable">{{ stats.available_slots }}</b></span>
+      <span>Occupied <b id="homeOccupied">{{ stats.occupied_slots }}</b></span>
+    </div>
+  </div>
+</section>
+
+<section class="feature-grid">
+  <article class="feature-card"><div class="icon">🅿️</div><h3>Live Slot Status</h3><p>Car and Bike slots update automatically after every entry and exit.</p></article>
+  <article class="feature-card"><div class="icon">🧾</div><h3>Digital Receipts</h3><p>Automatic duration, dynamic fee calculation and printable payment receipt.</p></article>
+  <article class="feature-card"><div class="icon">📈</div><h3>Revenue Analytics</h3><p>Daily records, parking totals, revenue and vehicle-type reports for staff.</p></article>
+  <article class="feature-card"><div class="icon">🚨</div><h3>Overstay Alerts</h3><p>Long-running parking sessions are highlighted for watchmen and admins.</p></article>
+</section>
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | ParkSmart{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div><span class="eyebrow">{{ user.role|upper }} DASHBOARD</span><h1>Hello, {{ user.name }}</h1><p class="muted">Here is the latest parking status.</p></div>
+  {% if user.role in ['admin','watchman'] %}
+    <a class="btn primary" href="/parking/entry">+ Vehicle Entry</a>
+  {% else %}
+    <a class="btn primary" href="/vehicles">+ Register Vehicle</a>
+  {% endif %}
+</section>
+
+<section class="stats-grid">
+  <div class="stat-card"><span>Available Slots</span><strong id="availableSlots">{{ stats.available_slots }}</strong><small>Live capacity</small></div>
+  <div class="stat-card"><span>Occupied Slots</span><strong id="occupiedSlots">{{ stats.occupied_slots }}</strong><small>Currently parked</small></div>
+  <div class="stat-card"><span>Car Slots Free</span><strong id="carAvailable">{{ stats.cars_available }}</strong><small>Cars only</small></div>
+  <div class="stat-card"><span>Bike Slots Free</span><strong id="bikeAvailable">{{ stats.bikes_available }}</strong><small>Bikes only</small></div>
+  {% if user.role in ['admin','watchman'] %}
+  <div class="stat-card"><span>Today Entries</span><strong>{{ stats.today_entries }}</strong><small>Vehicles handled</small></div>
+  <div class="stat-card"><span>Today Revenue</span><strong>{{ stats.today_revenue|money }}</strong><small>Paid exits</small></div>
+  {% endif %}
+</section>
+
+{% if notifications %}
+<section class="panel">
+  <div class="panel-head"><h2>Notifications</h2><a href="/notifications/read">Mark all read</a></div>
+  <div class="notice-list">
+    {% for n in notifications %}
+    <div class="notice {% if not n.is_read %}unread{% endif %}">
+      <span>🔔</span><div><b>{{ n.message }}</b><small>{{ n.created_at }}</small></div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if user.role == 'user' %}
+<section class="panel">
+  <div class="panel-head"><h2>My Vehicles</h2><a href="/vehicles">View all</a></div>
+  {% if vehicles %}
+  <div class="card-grid">
+    {% for v in vehicles %}
+    <article class="vehicle-card">
+      <div class="vehicle-top"><span class="vehicle-type">{{ "🚗" if v.vehicle_type=="Car" else "🏍️" }}</span>
+      <span class="status {{ 'busy' if v.is_parked else 'ok' }}">{{ 'Parked' if v.is_parked else 'Not Parked' }}</span></div>
+      <h3>{{ v.vehicle_number }}</h3><p>{{ v.model }} • {{ v.vehicle_type }}</p>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+    <div class="empty">No vehicles registered yet. <a href="/vehicles">Register your first vehicle.</a></div>
+  {% endif %}
+</section>
+{% endif %}
+
+{% if user.role in ['admin','watchman'] %}
+<section class="panel">
+  <div class="panel-head"><h2>Active Parking</h2><span class="muted">{{ active|length }} vehicle(s)</span></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Vehicle</th><th>Type</th><th>Owner</th><th>Slot</th><th>Entry</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody>
+      {% for r in active %}
+        <tr>
+          <td><b>{{ r.vehicle_number }}</b></td><td>{{ r.vehicle_type }}</td><td>{{ r.owner_name }}</td>
+          <td><span class="slot-tag">{{ r.slot_number }}</span></td><td>{{ r.entry_time }}</td>
+          <td>{% if r.overstay %}<span class="status danger">OVERSTAY</span>{% else %}<span class="status ok">Parked</span>{% endif %}</td>
+          <td><form method="post" action="/parking/exit/{{ r.id }}" onsubmit="return confirm('Process exit and payment?')"><button class="btn small" type="submit">Exit & Bill</button></form></td>
+        </tr>
+      {% else %}
+        <tr><td colspan="7" class="empty">No active parking right now.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+
+<section class="panel">
+  <div class="panel-head"><h2>Recent Activity</h2><a href="/history">Full history</a></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Vehicle</th><th>Type</th><th>Slot</th><th>Entry</th><th>Exit</th><th>Amount</th></tr></thead>
+      <tbody>
+      {% for r in recent %}
+      <tr><td><b>{{ r.vehicle_number }}</b></td><td>{{ r.vehicle_type }}</td><td>{{ r.slot_number }}</td><td>{{ r.entry_time }}</td><td>{{ r.exit_time or '—' }}</td><td>{{ r.amount|money }}</td></tr>
+      {% else %}<tr><td colspan="6" class="empty">No parking history yet.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

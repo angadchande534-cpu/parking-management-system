@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Reports | ParkSmart{% endblock %}
+{% block content %}
+<section class="page-head"><div><span class="eyebrow">REPORTS & ANALYTICS</span><h1>Parking Performance</h1><p class="muted">Daily records, utilization and revenue analytics.</p></div></section>
+<section class="stats-grid">
+  <div class="stat-card"><span>Total Vehicles</span><strong>{{ summary.total_vehicles }}</strong><small>Registered</small></div>
+  <div class="stat-card"><span>Total Records</span><strong>{{ summary.total_records }}</strong><small>All time</small></div>
+  <div class="stat-card"><span>Currently Parked</span><strong>{{ summary.parked }}</strong><small>Live</small></div>
+  <div class="stat-card"><span>Available Slots</span><strong>{{ summary.available }}</strong><small>Current</small></div>
+  <div class="stat-card"><span>Today Revenue</span><strong>{{ summary.today_revenue|money }}</strong><small>Paid exits</small></div>
+  <div class="stat-card"><span>Total Revenue</span><strong>{{ summary.revenue|money }}</strong><small>All time</small></div>
+</section>
+
+<div class="two-col">
+<section class="panel">
+  <h2>Revenue by Vehicle Type</h2>
+  {% for r in by_type %}
+  <div class="bar-row"><div><b>{{ r.vehicle_type }}</b><span>{{ r.records }} records</span></div><div class="bar-track"><div class="bar-fill" style="width: {{ [95, 20 + r.records * 5]|min }}%"></div></div><strong>{{ r.revenue|money }}</strong></div>
+  {% else %}<div class="empty">No completed parking data.</div>{% endfor %}
+</section>
+<section class="panel">
+  <h2>Last 14 Active Days</h2>
+  <div class="table-wrap">
+  <table><thead><tr><th>Date</th><th>Vehicles</th><th>Revenue</th></tr></thead><tbody>
+  {% for d in daily %}<tr><td>{{ d.day }}</td><td>{{ d.vehicles }}</td><td>{{ d.revenue|money }}</td></tr>
+  {% else %}<tr><td colspan="3" class="empty">No report data yet.</td></tr>{% endfor %}
+  </tbody></table>
+  </div>
+</section>
+</div>
+{% endblock %}

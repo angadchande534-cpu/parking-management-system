@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Receipt #{{ record.id }} | ParkSmart{% endblock %}
+{% block content %}
+<section class="receipt-wrap">
+  <div class="receipt glass" id="receipt">
+    <div class="receipt-brand"><div class="auth-icon">P</div><div><h1>ParkSmart</h1><span>Digital Parking Receipt</span></div></div>
+    <div class="receipt-id">Receipt #{{ record.id }}</div>
+    <div class="receipt-grid">
+      <div><span>Vehicle Number</span><b>{{ record.vehicle_number }}</b></div>
+      <div><span>Vehicle Type</span><b>{{ record.vehicle_type }}</b></div>
+      <div><span>Model</span><b>{{ record.model }}</b></div>
+      <div><span>Owner</span><b>{{ record.owner_name }}</b></div>
+      <div><span>Parking Slot</span><b>{{ record.slot_number }}</b></div>
+      <div><span>Payment Status</span><b>{{ record.payment_status }}</b></div>
+      <div><span>Entry Time</span><b>{{ record.entry_time }}</b></div>
+      <div><span>Exit Time</span><b>{{ record.exit_time }}</b></div>
+      <div><span>Duration</span><b>{{ record.duration_minutes }} minutes</b></div>
+    </div>
+    <div class="receipt-total"><span>Total Paid</span><strong>{{ record.amount|money }}</strong></div>
+    <p class="center muted">Thank you for using ParkSmart.</p>
+  </div>
+  <div class="receipt-actions">
+    <button class="btn primary" onclick="window.print()">Print / Save as PDF</button>
+    <a class="btn ghost" href="/dashboard">Back to Dashboard</a>
+  </div>
+</section>
+{% endblock %}

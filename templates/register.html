@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Register | ParkSmart{% endblock %}
+{% block content %}
+<section class="auth-shell">
+  <div class="auth-card glass">
+    <div class="auth-icon">+</div>
+    <h1>Create account</h1>
+    <p class="muted">Register and manage your vehicles digitally.</p>
+    <form method="post" action="/register" class="form-stack">
+      <label>Full name<input name="name" required placeholder="Your full name"></label>
+      <label>Email<input type="email" name="email" required placeholder="you@example.com"></label>
+      <label>Password<input type="password" name="password" required minlength="6" placeholder="Minimum 6 characters"></label>
+      <label>Confirm password<input type="password" name="confirm_password" required minlength="6"></label>
+      <button class="btn primary full" type="submit">Create Account</button>
+    </form>
+    <p class="center muted">Already registered? <a href="/login">Login</a></p>
+  </div>
+</section>
+{% endblock %}

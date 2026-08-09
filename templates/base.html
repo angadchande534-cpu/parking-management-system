@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}ParkSmart{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script defer src="/static/app.js"></script>
+</head>
+<body>
+  <div class="bg-orb orb-1"></div><div class="bg-orb orb-2"></div>
+  <header class="topbar">
+    <a class="brand" href="/"><span class="brand-icon">P</span><span>ParkSmart</span></a>
+    <nav class="nav">
+      {% if user %}
+        <a href="/dashboard">Dashboard</a>
+        <a href="/vehicles">Vehicles</a>
+        <a href="/slots">Slots</a>
+        <a href="/search">Search</a>
+        <a href="/history">History</a>
+        {% if user.role in ['admin','watchman'] %}
+          <a href="/reports">Reports</a>
+        {% endif %}
+        {% if user.role == 'admin' %}
+          <a href="/admin">Admin</a>
+        {% endif %}
+        <a class="pill danger-soft" href="/logout">Logout</a>
+      {% else %}
+        <a href="/login">Login</a>
+        <a class="pill" href="/register">Create account</a>
+      {% endif %}
+    </nav>
+    <button class="menu-btn" type="button" onclick="toggleNav()">☰</button>
+  </header>
+
+  {% if message %}
+    <div class="toast" id="toast">{{ message }}</div>
+  {% endif %}
+
+  <main class="page">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    <div>ParkSmart Vehicle Parking Management System</div>
+    <div class="muted">FastAPI • SQLite • Responsive Web UI</div>
+  </footer>
+</body>
+</html>

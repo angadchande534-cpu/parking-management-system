@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Login | ParkSmart{% endblock %}
+{% block content %}
+<section class="auth-shell">
+  <div class="auth-card glass">
+    <div class="auth-icon">P</div>
+    <h1>Welcome back</h1>
+    <p class="muted">Sign in to your ParkSmart account.</p>
+    <form method="post" action="/login" class="form-stack">
+      <label>Email<input type="email" name="email" required placeholder="you@example.com"></label>
+      <label>Password<input type="password" name="password" required placeholder="••••••••"></label>
+      <button class="btn primary full" type="submit">Login</button>
+    </form>
+    <p class="center muted">New user? <a href="/register">Create an account</a></p>
+    <div class="demo-box">
+      <b>Demo staff accounts</b>
+      <small>Admin: admin@parking.local / Admin@123</small>
+      <small>Watchman: watchman@parking.local / Watchman@123</small>
+    </div>
+  </div>
+</section>
+{% endblock %}

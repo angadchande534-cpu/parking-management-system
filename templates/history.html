@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Parking History | ParkSmart{% endblock %}
+{% block content %}
+<section class="page-head"><div><span class="eyebrow">PARKING HISTORY</span><h1>Entries, Exits & Payments</h1><p class="muted">Complete parking activity and payment records.</p></div></section>
+<section class="panel">
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>ID</th><th>Vehicle</th><th>Type</th><th>Slot</th><th>Entry</th><th>Exit</th><th>Duration</th><th>Amount</th><th>Payment</th><th>Receipt</th></tr></thead>
+      <tbody>
+      {% for r in records %}
+      <tr>
+        <td>#{{ r.id }}</td><td><b>{{ r.vehicle_number }}</b></td><td>{{ r.vehicle_type }}</td><td>{{ r.slot_number }}</td>
+        <td>{{ r.entry_time }}</td><td>{{ r.exit_time or '—' }}</td>
+        <td>{% if r.duration_minutes %}{{ r.duration_minutes }} min{% else %}Active{% endif %}</td>
+        <td>{{ r.amount|money }}</td><td><span class="status {{ 'ok' if r.payment_status=='Paid' else 'warn' }}">{{ r.payment_status }}</span></td>
+        <td>{% if r.status=='Exited' %}<a href="/receipt/{{ r.id }}">View</a>{% else %}—{% endif %}</td>
+      </tr>
+      {% else %}<tr><td colspan="10" class="empty">No parking records yet.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

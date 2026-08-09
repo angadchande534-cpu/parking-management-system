@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Parking Slots | ParkSmart{% endblock %}
+{% block content %}
+<section class="page-head"><div><span class="eyebrow">LIVE AVAILABILITY</span><h1>Parking Slots</h1><p class="muted">Green = available, red = occupied.</p></div></section>
+{% if user.role == 'admin' %}
+<section class="panel">
+  <form class="inline-form" method="post" action="/admin/slots/add">
+    <label>Slot Number<input name="slot_number" required placeholder="C-16"></label>
+    <label>Type<select name="vehicle_type"><option>Car</option><option>Bike</option></select></label>
+    <button class="btn primary" type="submit">Add Slot</button>
+  </form>
+</section>
+{% endif %}
+<section class="slot-sections">
+  {% for typ in ['Car','Bike'] %}
+  <div class="panel">
+    <div class="panel-head"><h2>{{ "🚗" if typ=="Car" else "🏍️" }} {{ typ }} Slots</h2></div>
+    <div class="slot-grid">
+    {% for s in slots if s.vehicle_type==typ %}
+      <div class="slot-card {{ 'occupied' if s.status=='Occupied' else 'available' }}">
+        <strong>{{ s.slot_number }}</strong><span>{{ s.status }}</span>
+        {% if user.role=='admin' and s.status=='Available' %}
+        <form method="post" action="/admin/slots/delete/{{ s.id }}" onsubmit="return confirm('Delete this unused slot?')"><button class="link-danger" type="submit">Delete</button></form>
+        {% endif %}
+      </div>
+    {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</section>
+{% endblock %}
