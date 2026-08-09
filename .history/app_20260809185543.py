@@ -503,7 +503,9 @@ def dashboard(request: Request):
                         ) AS current_slot
 
                     FROM vehicles v
+
                     WHERE v.user_id=?
+
                     ORDER BY v.id DESC
                     """,
                     (user["id"],)
@@ -1340,94 +1342,6 @@ def park_now(request: Request, vehicle_id: int):
     return redirect(
         "/dashboard",
         f"Vehicle parked in {slot['slot_number']}."
-    )
-@app.post("/my-parking/exit/{record_id}")
-def my_parking_exit(request: Request, record_id: int):
-
-    user = require_user(request)
-
-    if not user:
-        return redirect("/login")
-
-    with get_db() as db:
-
-        record = db.execute(
-            """
-            SELECT
-                p.*,
-                v.vehicle_number,
-                v.vehicle_type,
-                v.user_id
-
-            FROM parking_records p
-
-            JOIN vehicles v
-            ON v.id = p.vehicle_id
-
-            WHERE p.id=?
-            """,
-            (record_id,)
-        ).fetchone()
-
-
-        if not record:
-            return redirect(
-                "/dashboard",
-                "Parking record not found."
-            )
-
-
-        if record["user_id"] != user["id"]:
-            return redirect(
-                "/dashboard",
-                "Not allowed."
-            )
-
-
-        exit_time, duration, amount = calculate_fee(
-            record["vehicle_type"],
-            record["entry_time"]
-        )
-
-
-        db.execute(
-            """
-            UPDATE parking_records
-
-            SET
-                exit_time=?,
-                duration_minutes=?,
-                amount=?,
-                status='Exited',
-                payment_status='Paid'
-
-            WHERE id=?
-            """,
-            (
-                exit_time,
-                duration,
-                amount,
-                record_id
-            )
-        )
-
-
-        db.execute(
-            """
-            UPDATE slots
-            SET status='Available'
-            WHERE id=?
-            """,
-            (record["slot_id"],)
-        )
-
-
-        db.commit()
-
-
-    return redirect(
-        f"/receipt/{record_id}",
-        "Exit completed."
     )
 def health():
     return {"status": "ok", "app": "ParkSmart"}

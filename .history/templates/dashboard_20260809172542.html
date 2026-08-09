@@ -35,141 +35,22 @@
 {% endif %}
 
 {% if user.role == 'user' %}
-
 <section class="panel">
-
-    <div class="panel-head">
-        <h2>My Vehicles</h2>
-
-        <a href="/vehicles">
-            View all
-        </a>
-    </div>
-
-
-    {% if vehicles %}
-
-    <div class="card-grid">
-
-        {% for v in vehicles %}
-
-        <article class="vehicle-card">
-
-            <div class="vehicle-top">
-
-                <span class="vehicle-type">
-
-                    {% if v.vehicle_type == "Car" %}
-                        🚗
-                    {% else %}
-                        🏍️
-                    {% endif %}
-
-                </span>
-
-
-                {% if v.is_parked %}
-
-                    <span class="status busy">
-                        PARKED
-                    </span>
-
-                {% else %}
-
-                    <span class="status ok">
-                        NOT PARKED
-                    </span>
-
-                {% endif %}
-
-            </div>
-
-
-            <h3>
-                {{ v.vehicle_number }}
-            </h3>
-
-            <p>
-                {{ v.model }} • {{ v.vehicle_type }}
-            </p>
-
-
-            {% if not v.is_parked %}
-
-            <form
-                method="post"
-                action="/park-now/{{ v.id }}"
-                style="margin-top:15px;"
-            >
-
-                <button
-                    type="submit"
-                    class="btn primary full"
-                >
-                    🅿️ PARK NOW
-                </button>
-
-            </form>
-
-
-            {% else %}
-
-            <div style="margin-top:15px;">
-
-                <p style="color:#4ee1a0;">
-                    🅿️ Parked in
-                    <strong>
-                        {{ v.current_slot }}
-                    </strong>
-                </p>
-
-
-                <form
-                    method="post"
-                    action="/my-parking/exit/{{ v.current_parking_id }}"
-                >
-
-                    <button
-                        type="submit"
-                        class="btn full"
-                    >
-                        🚗 EXIT & PAY
-                    </button>
-
-                </form>
-
-            </div>
-
-            {% endif %}
-
-        </article>
-
-        {% endfor %}
-
-    </div>
-
-
-    {% else %}
-
-    <div class="empty">
-
-        No vehicle registered.
-
-        <br><br>
-
-        <a
-            href="/vehicles"
-            class="btn primary"
-        >
-            Register Vehicle
-        </a>
-
-    </div>
-
-    {% endif %}
-
+  <div class="panel-head"><h2>My Vehicles</h2><a href="/vehicles">View all</a></div>
+  {% if vehicles %}
+  <div class="card-grid">
+    {% for v in vehicles %}
+    <article class="vehicle-card">
+      <div class="vehicle-top"><span class="vehicle-type">{{ "🚗" if v.vehicle_type=="Car" else "🏍️" }}</span>
+      <span class="status {{ 'busy' if v.is_parked else 'ok' }}">{{ 'Parked' if v.is_parked else 'Not Parked' }}</span></div>
+      <h3>{{ v.vehicle_number }}</h3><p>{{ v.model }} • {{ v.vehicle_type }}</p>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+    <div class="empty">No vehicles registered yet. <a href="/vehicles">Register your first vehicle.</a></div>
+  {% endif %}
 </section>
-
 {% endif %}
 
 {% if user.role in ['admin','watchman'] %}

@@ -468,47 +468,54 @@ def dashboard(request: Request):
                 ).fetchone()[0],
             }
 
-            vehicles = [
-                dict(r)
-                for r in db.execute(
-                    """
-                    SELECT
-                        v.*,
+          vehicles = [
+    dict(r)
+    for r in db.execute(
+        """
+        SELECT
+            v.*,
 
-                        EXISTS(
-                            SELECT 1
-                            FROM parking_records p
-                            WHERE p.vehicle_id=v.id
-                            AND p.status='Parked'
-                        ) AS is_parked,
+            EXISTS(
+                SELECT 1
+                FROM parking_records p
+                WHERE p.vehicle_id=v.id
+                AND p.status='Parked'
+            ) AS is_parked,
 
-                        (
-                            SELECT p.id
-                            FROM parking_records p
-                            WHERE p.vehicle_id=v.id
-                            AND p.status='Parked'
-                            ORDER BY p.id DESC
-                            LIMIT 1
-                        ) AS current_parking_id,
+            (
+                SELECT p.id
+                FROM parking_records p
+                WHERE p.vehicle_id=v.id
+                AND p.status='Parked'
+                ORDER BY p.id DESC
+                LIMIT 1
+            ) AS current_parking_id,
 
-                        (
-                            SELECT s.slot_number
-                            FROM parking_records p
-                            JOIN slots s
-                            ON s.id=p.slot_id
-                            WHERE p.vehicle_id=v.id
-                            AND p.status='Parked'
-                            ORDER BY p.id DESC
-                            LIMIT 1
-                        ) AS current_slot
+            (
+                SELECT s.slot_number
 
-                    FROM vehicles v
-                    WHERE v.user_id=?
-                    ORDER BY v.id DESC
-                    """,
-                    (user["id"],)
-                ).fetchall()
-            ]
+                FROM parking_records p
+
+                JOIN slots s
+                ON s.id=p.slot_id
+
+                WHERE p.vehicle_id=v.id
+                AND p.status='Parked'
+
+                ORDER BY p.id DESC
+                LIMIT 1
+
+            ) AS current_slot
+
+        FROM vehicles v
+
+        WHERE v.user_id=?
+
+        ORDER BY v.id DESC
+        """,
+        (user["id"],)
+    ).fetchall()
+]
 
             recent = [
                 dict(r)

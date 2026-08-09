@@ -503,7 +503,9 @@ def dashboard(request: Request):
                         ) AS current_slot
 
                     FROM vehicles v
+
                     WHERE v.user_id=?
+
                     ORDER BY v.id DESC
                     """,
                     (user["id"],)
