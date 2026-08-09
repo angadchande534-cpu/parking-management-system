@@ -364,6 +364,10 @@ def dashboard(request: Request):
 
     with get_db() as db:
 
+        # ==============================
+        # GENERAL PARKING STATISTICS
+        # ==============================
+
         stats = {
             "total_slots": db.execute(
                 "SELECT COUNT(*) FROM slots"
@@ -413,16 +417,31 @@ def dashboard(request: Request):
             ).fetchone()[0],
         }
 
+
+        # ==============================
+        # PARKING PRICES
+        # ==============================
+
         pricing = [
             dict(r)
             for r in db.execute(
-                "SELECT * FROM pricing ORDER BY vehicle_type"
+                """
+                SELECT *
+                FROM pricing
+                ORDER BY vehicle_type
+                """
             ).fetchall()
         ]
+
+
+        # ==============================
+        # NORMAL USER DASHBOARD
+        # ==============================
 
         if user["role"] == "user":
 
             user_stats = {
+
                 "total_vehicles": db.execute(
                     """
                     SELECT COUNT(*)
@@ -432,35 +451,44 @@ def dashboard(request: Request):
                     (user["id"],)
                 ).fetchone()[0],
 
+
                 "total_visits": db.execute(
                     """
                     SELECT COUNT(*)
                     FROM parking_records p
+
                     JOIN vehicles v
                     ON v.id = p.vehicle_id
+
                     WHERE v.user_id=?
                     """,
                     (user["id"],)
                 ).fetchone()[0],
 
+
                 "active_parking": db.execute(
                     """
                     SELECT COUNT(*)
                     FROM parking_records p
+
                     JOIN vehicles v
                     ON v.id = p.vehicle_id
+
                     WHERE v.user_id=?
                     AND p.status='Parked'
                     """,
                     (user["id"],)
                 ).fetchone()[0],
 
+
                 "total_spent": db.execute(
                     """
                     SELECT COALESCE(SUM(p.amount),0)
                     FROM parking_records p
+
                     JOIN vehicles v
-                    ON v.id=p.vehicle_id
+                    ON v.id = p.vehicle_id
+
                     WHERE v.user_id=?
                     AND p.payment_status='Paid'
                     """,
@@ -468,25 +496,35 @@ def dashboard(request: Request):
                 ).fetchone()[0],
             }
 
+
+            # USER VEHICLES
+
             vehicles = [
                 dict(r)
                 for r in db.execute(
                     """
                     SELECT
                         v.*,
+
                         EXISTS(
                             SELECT 1
                             FROM parking_records p
                             WHERE p.vehicle_id=v.id
                             AND p.status='Parked'
                         ) AS is_parked
+
                     FROM vehicles v
+
                     WHERE v.user_id=?
+
                     ORDER BY v.id DESC
                     """,
                     (user["id"],)
                 ).fetchall()
             ]
+
+
+            # USER RECENT PARKING ACTIVITY
 
             recent = [
                 dict(r)
@@ -497,16 +535,29 @@ def dashboard(request: Request):
                         v.vehicle_number,
                         v.vehicle_type,
                         s.slot_number
+
                     FROM parking_records p
-                    JOIN vehicles v ON v.id=p.vehicle_id
-                    JOIN slots s ON s.id=p.slot_id
+
+                    JOIN vehicles v
+                    ON v.id=p.vehicle_id
+
+                    JOIN slots s
+                    ON s.id=p.slot_id
+
                     WHERE v.user_id=?
+
                     ORDER BY p.id DESC
+
                     LIMIT 8
                     """,
                     (user["id"],)
                 ).fetchall()
             ]
+
+
+        # ==============================
+        # ADMIN / WATCHMAN DASHBOARD
+        # ==============================
 
         else:
 
@@ -522,14 +573,26 @@ def dashboard(request: Request):
                         v.vehicle_type,
                         v.owner_name,
                         s.slot_number
+
                     FROM parking_records p
-                    JOIN vehicles v ON v.id=p.vehicle_id
-                    JOIN slots s ON s.id=p.slot_id
+
+                    JOIN vehicles v
+                    ON v.id=p.vehicle_id
+
+                    JOIN slots s
+                    ON s.id=p.slot_id
+
                     ORDER BY p.id DESC
+
                     LIMIT 10
                     """
                 ).fetchall()
             ]
+
+
+        # ==============================
+        # CURRENTLY PARKED VEHICLES
+        # ==============================
 
         active = [
             dict(r)
@@ -542,17 +605,32 @@ def dashboard(request: Request):
                     v.owner_name,
                     s.slot_number,
                     pr.overstay_hours
+
                 FROM parking_records p
-                JOIN vehicles v ON v.id=p.vehicle_id
-                JOIN slots s ON s.id=p.slot_id
-                JOIN pricing pr ON pr.vehicle_type=v.vehicle_type
+
+                JOIN vehicles v
+                ON v.id=p.vehicle_id
+
+                JOIN slots s
+                ON s.id=p.slot_id
+
+                JOIN pricing pr
+                ON pr.vehicle_type=v.vehicle_type
+
                 WHERE p.status='Parked'
+
                 ORDER BY p.entry_time
                 """
             ).fetchall()
         ]
 
+
+    # ==============================
+    # OVERSTAY CALCULATION
+    # ==============================
+
     for record in active:
+
         entered = datetime.strptime(
             record["entry_time"],
             "%Y-%m-%d %H:%M:%S"
@@ -562,19 +640,121 @@ def dashboard(request: Request):
             datetime.now() - entered
         ).total_seconds() / 3600
 
-        record["overstay"] = hours > record["overstay_hours"]
-        record["parked_hours"] = max(0, hours)
+        record["overstay"] = (
+            hours > record["overstay_hours"]
+        )
+
+        record["parked_hours"] = max(
+            0,
+            hours
+        )
+
+
+    # ==============================
+    # SHOW DASHBOARD
+    # ==============================
 
     return render(
         request,
         "dashboard.html",
+
         stats=stats,
+
         vehicles=vehicles,
+
         recent=recent,
+
         active=active,
+
         user_stats=user_stats,
+
         pricing=pricing
     )
+    user = require_user(request)
+    if not user:
+        return redirect("/login", "Please login first.")
+
+    with get_db() as db:
+        stats = {
+            "total_slots": db.execute("SELECT COUNT(*) FROM slots").fetchone()[0],
+            "available_slots": db.execute("SELECT COUNT(*) FROM slots WHERE status='Available'").fetchone()[0],
+            "occupied_slots": db.execute("SELECT COUNT(*) FROM slots WHERE status='Occupied'").fetchone()[0],
+            "cars_available": db.execute(
+                "SELECT COUNT(*) FROM slots WHERE vehicle_type='Car' AND status='Available'"
+            ).fetchone()[0],
+            "bikes_available": db.execute(
+                "SELECT COUNT(*) FROM slots WHERE vehicle_type='Bike' AND status='Available'"
+            ).fetchone()[0],
+            "today_entries": db.execute(
+                "SELECT COUNT(*) FROM parking_records WHERE date(entry_time)=date('now','localtime')"
+            ).fetchone()[0],
+            "today_revenue": db.execute(
+                """SELECT COALESCE(SUM(amount),0) FROM parking_records
+                   WHERE payment_status='Paid' AND date(exit_time)=date('now','localtime')"""
+            ).fetchone()[0],
+        }user_stats = None
+
+pricing = [
+    dict(r) for r in db.execute(
+        "SELECT * FROM pricing ORDER BY vehicle_type"
+    ).fetchall()
+]
+
+        if user["role"] == "user":
+            vehicles = [
+                dict(r) for r in db.execute(
+                    """SELECT v.*,
+                       EXISTS(SELECT 1 FROM parking_records p WHERE p.vehicle_id=v.id AND p.status='Parked') AS is_parked
+                       FROM vehicles v WHERE v.user_id=? ORDER BY v.id DESC""",
+                    (user["id"],),
+                ).fetchall()
+            ]
+            recent = [
+                dict(r) for r in db.execute(
+                    """SELECT p.*, v.vehicle_number, v.vehicle_type, s.slot_number
+                       FROM parking_records p
+                       JOIN vehicles v ON v.id=p.vehicle_id
+                       JOIN slots s ON s.id=p.slot_id
+                       WHERE v.user_id=?
+                       ORDER BY p.id DESC LIMIT 8""",
+                    (user["id"],),
+                ).fetchall()
+            ]
+        else:
+            vehicles = []
+            recent = [
+                dict(r) for r in db.execute(
+                    """SELECT p.*, v.vehicle_number, v.vehicle_type, v.owner_name, s.slot_number
+                       FROM parking_records p
+                       JOIN vehicles v ON v.id=p.vehicle_id
+                       JOIN slots s ON s.id=p.slot_id
+                       ORDER BY p.id DESC LIMIT 10"""
+                ).fetchall()
+            ]
+
+        active = [
+            dict(r) for r in db.execute(
+                """SELECT p.*, v.vehicle_number, v.vehicle_type, v.owner_name, s.slot_number,
+                          pr.overstay_hours
+                   FROM parking_records p
+                   JOIN vehicles v ON v.id=p.vehicle_id
+                   JOIN slots s ON s.id=p.slot_id
+                   JOIN pricing pr ON pr.vehicle_type=v.vehicle_type
+                   WHERE p.status='Parked'
+                   ORDER BY p.entry_time"""
+            ).fetchall()
+        ]
+
+    for record in active:
+        entered = datetime.strptime(record["entry_time"], "%Y-%m-%d %H:%M:%S")
+        hours = (datetime.now() - entered).total_seconds() / 3600
+        record["overstay"] = hours > record["overstay_hours"]
+        record["parked_hours"] = max(0, hours)
+
+    return render(
+        request, "dashboard.html", stats=stats, vehicles=vehicles, recent=recent, active=active
+    )
+
 
 @app.get("/vehicles", response_class=HTMLResponse)
 def vehicles_page(request: Request):
